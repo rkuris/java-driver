@@ -4,6 +4,7 @@
 
 - [improvement] Make NativeColumnType a top-level class (JAVA-715)
 - [improvement] Unify "Target" enum for schema elements (JAVA-782)
+- [improvement] Provide a way to map computed fields    (JAVA-661)
 
 
 ### 2.1.6

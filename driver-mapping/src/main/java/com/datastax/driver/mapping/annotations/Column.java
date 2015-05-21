@@ -49,4 +49,5 @@ public @interface Column {
      * @return whether the column name is a case sensitive one.
      */
     boolean caseSensitive() default false;
+
 }

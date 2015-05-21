@@ -51,7 +51,8 @@ public class Mapper<T> {
     private static final Function<Object, Void> NOOP = Functions.<Void>constant(null);
 
     final Function<ResultSet, T> mapOneFunction;
-    final Function<ResultSet, Result<T>> mapAllFunction;
+    final Function<ResultSet, T> mapOneFunctionWithoutAliases;
+    final Function<ResultSet, Result<T>> mapAllFunctionWithoutAliases;
 
     Mapper(MappingManager manager, Class<T> klass, EntityMapper<T> mapper) {
         this.manager = manager;
@@ -67,9 +68,14 @@ public class Mapper<T> {
                 return Mapper.this.map(rs).one();
             }
         };
-        this.mapAllFunction = new Function<ResultSet, Result<T>>() {
+        this.mapOneFunctionWithoutAliases = new Function<ResultSet, T>() {
+            public T apply(ResultSet rs) {
+                return Mapper.this.map(rs, false).one();
+            }
+        };
+        this.mapAllFunctionWithoutAliases = new Function<ResultSet, Result<T>>() {
             public Result<T> apply(ResultSet rs) {
-                return Mapper.this.map(rs);
+                return Mapper.this.map(rs, false);
             }
         };
     }
@@ -132,8 +138,10 @@ public class Mapper<T> {
         BoundStatement bs = ps.bind();
         int i = 0;
         for (ColumnMapper<T> cm : mapper.allColumns()) {
-            Object value = cm.getValue(entity);
-            bs.setBytesUnsafe(i++, value == null ? null : cm.getDataType().serialize(value, protocolVersion));
+            if(cm.kind != ColumnMapper.Kind.COMPUTED) {
+                Object value = cm.getValue(entity);
+                bs.setBytesUnsafe(i++, value == null ? null : cm.getDataType().serialize(value, protocolVersion));
+            }
         }
 
         if (mapper.writeConsistency != null)
@@ -294,6 +302,10 @@ public class Mapper<T> {
      */
     public Result<T> map(ResultSet resultSet) {
         return new Result<T>(resultSet, mapper, protocolVersion);
+    }
+
+    public Result<T> map(ResultSet resultSet, boolean useAlias) {
+        return new Result<T>(resultSet, mapper, protocolVersion, useAlias);
     }
 
     /**
