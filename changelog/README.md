@@ -4,6 +4,8 @@
 
 - [improvement] Make NativeColumnType a top-level class (JAVA-715)
 - [improvement] Unify "Target" enum for schema elements (JAVA-782)
+- [improvement] Add USING options in mapper for delete and save
+  operations (JAVA-477/JAVA-540)
 
 
 ### 2.1.6
