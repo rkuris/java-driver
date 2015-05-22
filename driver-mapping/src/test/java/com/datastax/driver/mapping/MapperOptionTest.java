@@ -24,7 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.CCMBridge;
-import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
 

@@ -72,15 +72,16 @@ public class Mapper<T> {
                 return Mapper.this.map(rs);
             }
         };
+        this.preparedQueries.clear();
     }
 
     Session session() {
         return manager.getSession();
     }
 
-    PreparedStatement getPreparedQuery(QueryType type, Option... options) {
+    PreparedStatement getPreparedQuery(QueryType type, Set<ColumnMapper<?>> columns, Option... options) {
         String queryString;
-        queryString = type.makePreparedQueryString(tableMetadata, mapper, options);
+        queryString = type.makePreparedQueryString(tableMetadata, mapper, columns, options);
         PreparedStatement stmt = preparedQueries.get(queryString);
         if (stmt == null) {
             synchronized (preparedQueries) {
@@ -95,6 +96,10 @@ public class Mapper<T> {
             }
         }
         return stmt;
+    }
+
+    PreparedStatement getPreparedQuery(QueryType type, Option... options){
+        return getPreparedQuery(type, Collections.<ColumnMapper<?>>emptySet(), options);
     }
 
     /**
@@ -127,48 +132,28 @@ public class Mapper<T> {
      * @param entity the entity to save.
      * @return a query that saves {@code entity} (based on it's defined mapping).
      */
-    public Statement saveQuery(T entity) {
-        PreparedStatement ps;
-        if (this.defaultSaveOptions != null)
-            ps = getPreparedQuery(QueryType.SAVE, this.defaultSaveOptions);
-        else
-            ps = getPreparedQuery(QueryType.SAVE);
-
-        BoundStatement bs = ps.bind();
-        int i = 0;
-        for (ColumnMapper<T> cm : mapper.allColumns()) {
-            Object value = cm.getValue(entity);
-            bs.setBytesUnsafe(i++, value == null ? null : cm.getDataType().serialize(value, protocolVersion));
-        }
-
-        if (mapper.writeConsistency != null)
-            bs.setConsistencyLevel(mapper.writeConsistency);
-        return bs;
-    }
-
-    /**
-     * Creates a query that can be used to save the provided entity.
-     * <p/>
-     * This method is useful if you want to setup a number of options (tracing,
-     * conistency level, ...) of the returned statement before executing it manually
-     * or need access to the {@code ResultSet} object after execution (to get the
-     * trace, the execution info, ...), but in other cases, calling {@link #save}
-     * or {@link #saveAsync} is shorter.
-     *
-     * @param entity the entity to save.
-     * @return a query that saves {@code entity} (based on it's defined mapping).
-     */
     public Statement saveQuery(T entity, Option... options) {
-        PreparedStatement ps = getPreparedQuery(QueryType.SAVE, options);
+        Map<ColumnMapper<?>, Object> values = new HashMap<ColumnMapper<?>, Object>();
+        for (ColumnMapper<T> cm : mapper.allColumns()) {
+            Object value = cm.getValue(entity);
+            if (mapper.strategyType == StrategyType.ALL_FIELDS || value != null) {
+                values.put(cm, value);
+            }
+        }
+        PreparedStatement ps;
+        if (options.length > 0){
+            ps = getPreparedQuery(QueryType.SAVE, values.keySet(), options);
+        } else {
+            ps = getPreparedQuery(QueryType.SAVE, values.keySet(), this.defaultSaveOptions);
+        }
 
         BoundStatement bs = ps.bind();
         int i = 0;
-        for (ColumnMapper<T> cm : mapper.allColumns()) {
-            Object value = cm.getValue(entity);
-            bs.setBytesUnsafe(i++, value == null ? null : cm.getDataType().serialize(value, protocolVersion));
+        for (Map.Entry<ColumnMapper<?>, Object> entry : values.entrySet()) {
+            bs.setBytesUnsafe(i++, entry.getValue() == null ? null : entry.getKey().getDataType().serialize(entry.getValue(), protocolVersion));
         }
 
-        if (options != null) {
+        if (options.length > 0) {
             for (Option opt : options) {
                 if (opt instanceof Option.Ttl) {
                     Option.Ttl ttlOption = (Option.Ttl)opt;
@@ -180,6 +165,7 @@ public class Mapper<T> {
                 }
             }
         }
+
         if (mapper.writeConsistency != null)
             bs.setConsistencyLevel(mapper.writeConsistency);
         return bs;

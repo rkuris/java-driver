@@ -6,6 +6,7 @@
 - [improvement] Unify "Target" enum for schema elements (JAVA-782)
 - [improvement] Add USING options in mapper for delete and save
   operations (JAVA-477/JAVA-540)
+- [improvement] Persistence strategies for null fields  (JAVA-473)
 
 
 ### 2.1.6

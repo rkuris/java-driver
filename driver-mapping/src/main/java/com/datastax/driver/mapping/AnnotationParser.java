@@ -64,7 +64,9 @@ class AnnotationParser {
                 ));
         }
 
-        EntityMapper<T> mapper = factory.create(entityClass, ksName, tableName, writeConsistency, readConsistency);
+        StrategyType insertStrategy = table.saveStrategy();
+
+        EntityMapper<T> mapper = factory.create(entityClass, ksName, tableName, writeConsistency, readConsistency, insertStrategy);
 
         List<Field> pks = new ArrayList<Field>();
         List<Field> ccs = new ArrayList<Field>();
@@ -122,7 +124,9 @@ class AnnotationParser {
                 ));
         }
 
-        EntityMapper<T> mapper = factory.create(udtClass, ksName, udtName, null, null);
+        StrategyType insertUDTStrategy = udt.insert();
+
+        EntityMapper<T> mapper = factory.create(udtClass, ksName, udtName, null, null, insertUDTStrategy);
 
         List<Field> columns = new ArrayList<Field>();
 

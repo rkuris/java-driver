@@ -15,8 +15,7 @@
  */
 package com.datastax.driver.mapping;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.google.common.base.Objects;
 
@@ -60,13 +59,13 @@ class QueryType {
         return new QueryType(reversed ? Kind.REVERSED_SLICE : Kind.SLICE, startBoundSize, startInclusive, endBoundSize, endInclusive);
     }
 
-    String makePreparedQueryString(TableMetadata table, EntityMapper<?> mapper, Mapper.Option... options) {
+    String makePreparedQueryString(TableMetadata table, EntityMapper<?> mapper, Set<ColumnMapper<?>> columns, Mapper.Option... options) {
         switch (kind) {
             case SAVE: {
                 Insert insert = table == null
                     ? insertInto(mapper.getKeyspace(), mapper.getTable())
                     : insertInto(table);
-                for (ColumnMapper<?> cm : mapper.allColumns())
+                for (ColumnMapper<?> cm : columns)
                     insert.value(cm.getColumnName(), bindMarker());
                 if (options != null) {
                     Insert.Options usings = insert.using();
@@ -157,6 +156,7 @@ class QueryType {
         }
         throw new AssertionError();
     }
+
 
     @Override
     public boolean equals(Object obj) {

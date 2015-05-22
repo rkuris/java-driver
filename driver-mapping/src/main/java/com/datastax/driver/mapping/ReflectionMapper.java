@@ -36,8 +36,8 @@ class ReflectionMapper<T> extends EntityMapper<T> {
 
     private static ReflectionFactory factory = new ReflectionFactory();
 
-    private ReflectionMapper(Class<T> entityClass, String keyspace, String table, ConsistencyLevel writeConsistency, ConsistencyLevel readConsistency) {
-        super(entityClass, keyspace, table, writeConsistency, readConsistency);
+    private ReflectionMapper(Class<T> entityClass, String keyspace, String table, ConsistencyLevel writeConsistency, ConsistencyLevel readConsistency, StrategyType strategyType) {
+        super(entityClass, keyspace, table, writeConsistency, readConsistency, strategyType);
     }
 
     public static Factory factory() {
@@ -197,8 +197,8 @@ class ReflectionMapper<T> extends EntityMapper<T> {
 
     private static class ReflectionFactory implements Factory {
 
-        public <T> EntityMapper<T> create(Class<T> entityClass, String keyspace, String table, ConsistencyLevel writeConsistency, ConsistencyLevel readConsistency) {
-            return new ReflectionMapper<T>(entityClass, keyspace, table, writeConsistency, readConsistency);
+        public <T> EntityMapper<T> create(Class<T> entityClass, String keyspace, String table, ConsistencyLevel writeConsistency, ConsistencyLevel readConsistency, StrategyType strategyType) {
+            return new ReflectionMapper<T>(entityClass, keyspace, table, writeConsistency, readConsistency, strategyType);
         }
 
         @SuppressWarnings({ "unchecked", "rawtypes" })

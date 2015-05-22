@@ -36,12 +36,15 @@ abstract class EntityMapper<T> {
 
     private final List<ColumnMapper<T>> allColumns = new ArrayList<ColumnMapper<T>>();
 
-    protected EntityMapper(Class<T> entityClass, String keyspace, String table, ConsistencyLevel writeConsistency, ConsistencyLevel readConsistency) {
+    public final StrategyType strategyType;
+
+    protected EntityMapper(Class<T> entityClass, String keyspace, String table, ConsistencyLevel writeConsistency, ConsistencyLevel readConsistency, StrategyType strategyType) {
         this.entityClass = entityClass;
         this.keyspace = keyspace;
         this.table = table;
         this.writeConsistency = writeConsistency;
         this.readConsistency = readConsistency;
+        this.strategyType = strategyType;
     }
 
     public String getKeyspace() {
@@ -82,7 +85,7 @@ abstract class EntityMapper<T> {
     }
 
     interface Factory {
-        public <T> EntityMapper<T> create(Class<T> entityClass, String keyspace, String table, ConsistencyLevel writeConsistency, ConsistencyLevel readConsistency);
+        public <T> EntityMapper<T> create(Class<T> entityClass, String keyspace, String table, ConsistencyLevel writeConsistency, ConsistencyLevel readConsistency, StrategyType strategyType);
         public <T> ColumnMapper<T> createColumnMapper(Class<T> componentClass, Field field, int position, MappingManager mappingManager);
     }
 }

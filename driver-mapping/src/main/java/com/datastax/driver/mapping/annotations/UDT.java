@@ -20,6 +20,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.datastax.driver.mapping.StrategyType;
+
 /**
  * Defines to which User Defined Type a class must be mapped to.
  */
@@ -51,4 +53,12 @@ public @interface UDT {
      * @return whether the type name is a case sensitive one.
      */
     boolean caseSensitiveType() default false;
+
+    /**
+     * Define the strategy to use for NULL field values when saving
+     * or updating the object.
+     *
+     * @return the strategy for insert NULL fields.
+     */
+    StrategyType insert() default StrategyType.ALL_FIELDS;
 }

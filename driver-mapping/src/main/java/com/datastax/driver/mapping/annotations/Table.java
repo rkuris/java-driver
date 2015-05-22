@@ -21,6 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import com.datastax.driver.mapping.Mapper;
+import com.datastax.driver.mapping.StrategyType;
 
 /**
  * Defines to which table a class must be mapped to.
@@ -67,4 +68,12 @@ public @interface Table {
      * @return the consistency level to use for the read operations provded by the {@link Mapper} class.
      */
     String readConsistency() default "";
+
+    /**
+     * Define the strategy to use for NULL field values when saving
+     * or updating the object.
+     *
+     * @return the strategy for insert NULL fields.
+     */
+    StrategyType saveStrategy() default StrategyType.ALL_FIELDS;
 }
