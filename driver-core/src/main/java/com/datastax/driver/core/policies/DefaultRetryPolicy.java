@@ -124,6 +124,7 @@ public class DefaultRetryPolicy implements RetryPolicy {
      */
     @Override
     public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica, int aliveReplica, int nbRetry) {
+        // Do we change this to RetryDecision.tryNextHost() ?
         return RetryDecision.rethrow();
     }
 }

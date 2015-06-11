@@ -143,6 +143,9 @@ public class RetryPolicyTest extends AbstractPoliciesTest {
                     if (restartOnce)
                         successfulQuery = true;
                 } catch (UnavailableException e) {
+                    // TODO : change this comment depending on decision on Default behaviour
+                    // RetryPolicy.onUnavailable has been called, which triggered a retry on another host.
+                    // Since there is no other host in the query plan, a NoHostAvailableException is thrown.
                     assertEquals("Not enough replica available for query at consistency ONE (1 required but only 0 alive)", e.getMessage());
                     unavailableOnce = true;
                 } catch (ReadTimeoutException e) {
@@ -192,6 +195,9 @@ public class RetryPolicyTest extends AbstractPoliciesTest {
                     if (restartOnce)
                         successfulQuery = true;
                 } catch (UnavailableException e) {
+                    // TODO : change this comment depending on decision on Default behaviour
+                    // RetryPolicy.onUnavailable has been called, which triggered a retry on another host.
+                    // Since there is no other host in the query plan, a NoHostAvailableException is thrown.
                     assertEquals("Not enough replica available for query at consistency ONE (1 required but only 0 alive)", e.getMessage());
                     unavailableOnce = true;
                 } catch (WriteTimeoutException e) {
@@ -236,6 +242,9 @@ public class RetryPolicyTest extends AbstractPoliciesTest {
                     if (restartOnce)
                         successfulQuery = true;
                 } catch (UnavailableException e) {
+                    // TODO : change this comment depending on decision on Default behaviour
+                    // RetryPolicy.onUnavailable has been called, which triggered a retry on another host.
+                    // Since there is no other host in the query plan, a NoHostAvailableException is thrown.
                     assertEquals("Not enough replica available for query at consistency ONE (1 required but only 0 alive)", e.getMessage());
                     unavailableOnce = true;
                 } catch (WriteTimeoutException e) {

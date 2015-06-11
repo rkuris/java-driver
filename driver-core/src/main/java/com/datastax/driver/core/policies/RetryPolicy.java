@@ -50,10 +50,17 @@ public interface RetryPolicy {
 
         private final Type type;
         private final ConsistencyLevel retryCL;
+        private final boolean retryCurrent;
 
+        private RetryDecision(Type type, ConsistencyLevel retryCL, boolean retryCurrent){
+            this.type = type;
+            this.retryCL = retryCL;
+            this.retryCurrent = retryCurrent;
+        }
         private RetryDecision(Type type, ConsistencyLevel retryCL) {
             this.type = type;
             this.retryCL = retryCL;
+            this.retryCurrent = true;
         }
 
         /**
@@ -73,6 +80,15 @@ public interface RetryPolicy {
          */
         public ConsistencyLevel getRetryConsistencyLevel() {
             return retryCL;
+        }
+
+        /**
+         * Whether the retry policy uses the same host for retry decision.
+         *
+         * @return the retry on next host boolean. Default is false.
+         */
+        public boolean getTryNextHost() {
+            return retryCurrent;
         }
 
         /**
@@ -103,12 +119,21 @@ public interface RetryPolicy {
             return new RetryDecision(Type.IGNORE, null);
         }
 
+        /**
+         * Creates a RETRY retry decision and indicates to retry on another host.
+         *
+         * @return a RETRY retry decision.
+         */
+        public static RetryDecision tryNextHost(){
+            return new RetryDecision(Type.RETRY, null, false);
+        }
+
         @Override
         public String toString() {
             switch (type) {
-                case RETRY:   return "Retry at " + retryCL;
-                case RETHROW: return "Rethrow";
-                case IGNORE:  return "Ignore";
+                case RETRY:         return "Retry at " + retryCL;
+                case RETHROW:       return "Rethrow";
+                case IGNORE:        return "Ignore";
             }
             throw new AssertionError();
         }

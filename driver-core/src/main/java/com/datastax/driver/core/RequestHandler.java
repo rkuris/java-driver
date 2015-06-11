@@ -357,6 +357,7 @@ class RequestHandler {
         }
 
         private void retry(final boolean retryCurrent, ConsistencyLevel newConsistencyLevel) {
+
             final Host h = current;
             this.retryConsistencyLevel = newConsistencyLevel;
 
@@ -579,7 +580,7 @@ class RequestHandler {
                                         logger.debug("Doing retry {} for query {} at consistency {}", retriesByPolicy, statement, retry.getRetryConsistencyLevel());
                                     if (metricsEnabled())
                                         metrics().getErrorMetrics().getRetries().inc();
-                                    retry(true, retry.getRetryConsistencyLevel());
+                                    retry(retry.getTryNextHost(), retry.getRetryConsistencyLevel());
                                     break;
                                 case RETHROW:
                                     setFinalResult(connection, response);
