@@ -68,6 +68,8 @@ class RequestHandler {
     private final AtomicBoolean isDone = new AtomicBoolean();
     private AtomicInteger executionCount = new AtomicInteger();
 
+    private long universalTimestamp = 0;
+
     public RequestHandler(SessionManager manager, Callback callback, Statement statement) {
         this.id = Long.toString(System.identityHashCode(this));
         if(logger.isTraceEnabled())
@@ -111,7 +113,10 @@ class RequestHandler {
         // Clone the request after the first execution, since we set the streamId on it later and we
         // don't want to share that across executions.
         if (position > 1)
-            request = manager.makeRequestMessage(statement, request.pagingState()) ;
+            request = manager.makeRequestMessage(statement, request.pagingState(), universalTimestamp) ;
+        else
+            // Set timestamp for future speculative executions
+            universalTimestamp = request.timestamp();
 
         SpeculativeExecution execution = new SpeculativeExecution(request, position);
         runningExecutions.add(execution);
@@ -405,7 +410,7 @@ class RequestHandler {
         @Override
         public Message.Request request() {
             if (retryConsistencyLevel != null && retryConsistencyLevel != request.consistency())
-                return manager.makeRequestMessage(statement, retryConsistencyLevel, request.serialConsistency(), request.pagingState(), request.defaultTimestamp());
+                return manager.makeRequestMessage(statement, retryConsistencyLevel, request.serialConsistency(), request.pagingState(), request.timestamp());
             else
                 return request;
         }
