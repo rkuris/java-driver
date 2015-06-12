@@ -17,6 +17,7 @@
   replication factors (JAVA-702)
 - [improvement] Add PoolingOptions method to set both core and max
   connections (JAVA-662).
+- [bug] Handle calls to now() and uuid() as non-idempotent in QueryBuilder (JAVA-733)
 
 Merged from 2.0.10_fixes branch:
 
