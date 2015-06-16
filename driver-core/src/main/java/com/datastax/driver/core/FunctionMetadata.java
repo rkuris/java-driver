@@ -70,7 +70,7 @@ public class FunctionMetadata {
     //     return_type text,
     //     PRIMARY KEY (keyspace_name, function_name, signature)
     // ) WITH CLUSTERING ORDER BY (function_name ASC, signature ASC)
-    static FunctionMetadata build(KeyspaceMetadata ksm, Row row) {
+    static FunctionMetadata build(KeyspaceMetadata ksm, Row row, VersionNumber cassandraVersion) {
         String simpleName = row.getString("function_name");
         List<String> signature = row.getList("signature", String.class);
         String fullName = Metadata.fullFunctionName(simpleName, signature);

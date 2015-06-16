@@ -59,7 +59,7 @@ public class UserType extends DataType implements Iterable<UserType.Field>{
         this.byName = builder.build();
     }
 
-    static UserType build(Row row) {
+    static UserType build(Row row, VersionNumber cassandraVersion) {
         String keyspace = row.getString(KeyspaceMetadata.KS_NAME);
         String name = row.getString(TYPE_NAME);
 

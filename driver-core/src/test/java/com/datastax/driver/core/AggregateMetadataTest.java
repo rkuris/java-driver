@@ -46,7 +46,7 @@ public class AggregateMetadataTest {
         FunctionMetadata stateFunc = mock(FunctionMetadata.class);
         keyspace.functions.put("cat(text,int)", stateFunc);
 
-        AggregateMetadata aggregate = AggregateMetadata.build(keyspace, SYSTEM_ROW_CAT_TOS, PROTOCOL_VERSION);
+        AggregateMetadata aggregate = AggregateMetadata.build(keyspace, SYSTEM_ROW_CAT_TOS, cassandraVersion, PROTOCOL_VERSION);
 
         assertThat(aggregate).isNotNull();
         assertThat(aggregate.getFullName()).isEqualTo("cat_tos(int)");
@@ -72,7 +72,7 @@ public class AggregateMetadataTest {
         FunctionMetadata stateFunc = mock(FunctionMetadata.class);
         keyspace.functions.put("inc(int)", stateFunc);
 
-        AggregateMetadata aggregate = AggregateMetadata.build(keyspace, SYSTEM_ROW_MYCOUNT, PROTOCOL_VERSION);
+        AggregateMetadata aggregate = AggregateMetadata.build(keyspace, SYSTEM_ROW_MYCOUNT, cassandraVersion, PROTOCOL_VERSION);
 
         assertThat(aggregate).isNotNull();
         assertThat(aggregate.getFullName()).isEqualTo("mycount()");
@@ -100,7 +100,7 @@ public class AggregateMetadataTest {
         FunctionMetadata finalFunc = mock(FunctionMetadata.class);
         keyspace.functions.put("announce(int)", finalFunc);
 
-        AggregateMetadata aggregate = AggregateMetadata.build(keyspace, SYSTEM_ROW_PRETTYSUM, PROTOCOL_VERSION);
+        AggregateMetadata aggregate = AggregateMetadata.build(keyspace, SYSTEM_ROW_PRETTYSUM, cassandraVersion, PROTOCOL_VERSION);
 
         assertThat(aggregate).isNotNull();
         assertThat(aggregate.getFullName()).isEqualTo("prettysum(int)");
@@ -127,7 +127,7 @@ public class AggregateMetadataTest {
         FunctionMetadata stateFunc = mock(FunctionMetadata.class);
         keyspace.functions.put("plus(int,int)", stateFunc);
 
-        AggregateMetadata aggregate = AggregateMetadata.build(keyspace, SYSTEM_ROW_SUM, PROTOCOL_VERSION);
+        AggregateMetadata aggregate = AggregateMetadata.build(keyspace, SYSTEM_ROW_SUM, cassandraVersion, PROTOCOL_VERSION);
 
         assertThat(aggregate).isNotNull();
         assertThat(aggregate.getFullName()).isEqualTo("sum(int)");

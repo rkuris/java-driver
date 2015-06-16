@@ -67,7 +67,7 @@ public class AggregateMetadata {
     //     state_type text,
     //     PRIMARY KEY (keyspace_name, aggregate_name, signature)
     // ) WITH CLUSTERING ORDER BY (aggregate_name ASC, signature ASC)
-    static AggregateMetadata build(KeyspaceMetadata ksm, Row row, ProtocolVersion protocolVersion) {
+    static AggregateMetadata build(KeyspaceMetadata ksm, Row row, VersionNumber cassandraVersion, ProtocolVersion protocolVersion) {
         String simpleName = row.getString("aggregate_name");
         List<String> signature = row.getList("signature", String.class);
         String fullName = Metadata.fullFunctionName(simpleName, signature);
