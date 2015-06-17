@@ -234,8 +234,6 @@ class AnnotationParser {
     }
 
     public static String newAlias(Field field, int columnNumber) {
-        // this could theoretically collide with an existing column name
-        // but it is highly unlikely
         return "col" + columnNumber;
 
     }

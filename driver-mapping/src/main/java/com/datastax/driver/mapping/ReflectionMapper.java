@@ -60,8 +60,8 @@ class ReflectionMapper<T> extends EntityMapper<T> {
             this(field, extractSimpleType(field), position, pd, columnNumber);
         }
 
-        private LiteralMapper(Field field, DataType type, int position, PropertyDescriptor pd, AtomicInteger columnNumber) {
-            super(field, type, position, columnNumber);
+        private LiteralMapper(Field field, DataType type, int position, PropertyDescriptor pd, AtomicInteger columnCounter) {
+            super(field, type, position, columnCounter);
             this.readMethod = pd.getReadMethod();
             this.writeMethod = pd.getWriteMethod();
         }
@@ -94,8 +94,8 @@ class ReflectionMapper<T> extends EntityMapper<T> {
         private final EnumType enumType;
         private final Map<String, Object> fromString;
 
-        private EnumMapper(Field field, int position, PropertyDescriptor pd, EnumType enumType, AtomicInteger columnNumber) {
-            super(field, enumType == EnumType.STRING ? DataType.text() : DataType.cint(), position, pd, columnNumber);
+        private EnumMapper(Field field, int position, PropertyDescriptor pd, EnumType enumType, AtomicInteger columnCounter) {
+            super(field, enumType == EnumType.STRING ? DataType.text() : DataType.cint(), position, pd, columnCounter);
             this.enumType = enumType;
 
             if (enumType == EnumType.STRING) {
@@ -139,8 +139,8 @@ class ReflectionMapper<T> extends EntityMapper<T> {
     private static class UDTColumnMapper<T, U> extends LiteralMapper<T> {
         private final UDTMapper<U> udtMapper;
 
-        private UDTColumnMapper(Field field, int position, PropertyDescriptor pd, UDTMapper<U> udtMapper, AtomicInteger columnNumber) {
-            super(field, udtMapper.getUserType(), position, pd, columnNumber);
+        private UDTColumnMapper(Field field, int position, PropertyDescriptor pd, UDTMapper<U> udtMapper, AtomicInteger columnCounter) {
+            super(field, udtMapper.getUserType(), position, pd, columnCounter);
             this.udtMapper = udtMapper;
         }
 
@@ -164,8 +164,8 @@ class ReflectionMapper<T> extends EntityMapper<T> {
     private static class NestedUDTMapper<T> extends LiteralMapper<T> {
         private final InferredCQLType inferredCQLType;
 
-        public NestedUDTMapper(Field field, int position, PropertyDescriptor pd, InferredCQLType inferredCQLType, AtomicInteger columnNumber) {
-            super(field, inferredCQLType.dataType, position, pd, columnNumber);
+        public NestedUDTMapper(Field field, int position, PropertyDescriptor pd, InferredCQLType inferredCQLType, AtomicInteger columnCounter) {
+            super(field, inferredCQLType.dataType, position, pd, columnCounter);
             this.inferredCQLType = inferredCQLType;
         }
 

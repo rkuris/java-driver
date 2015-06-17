@@ -37,17 +37,15 @@ abstract class ColumnMapper<T> {
     protected final Kind kind;
     protected final int position;
 
-    protected ColumnMapper(Field field, DataType dataType, int position, AtomicInteger columnNumber) {
-        this(AnnotationParser.columnName(field), columnNumber != null ? AnnotationParser.newAlias(field, columnNumber.incrementAndGet()) : null, field.getName(), field.getType(), dataType, AnnotationParser.kind(field), position);
-    }
-
-    private ColumnMapper(String columnName, String alias, String fieldName, Class<?> javaType, DataType dataType, Kind kind, int position) {
-        this.columnName = columnName;
-        this.alias = alias;
-        this.fieldName = fieldName;
-        this.javaType = javaType;
+    protected ColumnMapper(Field field, DataType dataType, int position, AtomicInteger columnCounter) {
+        this.columnName = AnnotationParser.columnName(field);
+        this.alias = (columnCounter != null)
+            ? AnnotationParser.newAlias(field, columnCounter.incrementAndGet())
+            : null;
+        this.fieldName = field.getName();
+        this.javaType = field.getType();
         this.dataType = dataType;
-        this.kind = kind;
+        this.kind = AnnotationParser.kind(field);
         this.position = position;
     }
 
