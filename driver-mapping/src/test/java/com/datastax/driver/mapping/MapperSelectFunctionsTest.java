@@ -20,9 +20,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
+import org.omg.CORBA.DynAnyPackage.Invalid;
 import org.testng.annotations.Test;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.exceptions.SyntaxError;
 import com.datastax.driver.mapping.annotations.*;
 
@@ -68,13 +70,13 @@ public class MapperSelectFunctionsTest extends CCMBridge.PerClassSingleNodeClust
         Mapper<User2> mapper = new MappingManager(session).mapper(User2.class);
         try {
             mapper.save(new User2(42, "helloworld"));
-        } catch (SyntaxError e) {
+        } catch (InvalidQueryException e) {
             setObjectFailed = true;
         }
         assertThat(setObjectFailed).isTrue();
         try {
             User2 saved = mapper.get(42);
-        } catch (SyntaxError e) {
+        } catch (InvalidQueryException e) {
             getObjectFailed = true;
         }
         assertThat(getObjectFailed).isTrue();
@@ -226,8 +228,8 @@ public class MapperSelectFunctionsTest extends CCMBridge.PerClassSingleNodeClust
         private int key;
         private String v;
 
-        // whitespaces in the column name inserted on purpose
-        // to test the newAlias generation mechanism
+        // quotes in the column name inserted on purpose
+        // to test the alias generation mechanism
         @Computed(formula = "writetime(\"v\")")
         long writeTime;
 
