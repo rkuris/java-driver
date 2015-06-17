@@ -16,7 +16,6 @@
 package com.datastax.driver.mapping;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,7 +44,7 @@ public class MapperSelectFunctionsTest extends CCMBridge.PerClassSingleNodeClust
 
     @Test(groups = "short")
     void should_add_aliases_for_fields_in_select_queries() {
-        Mapper<User5> mapper = new MappingManager(session).mapper(User5.class);
+        Mapper<User4> mapper = new MappingManager(session).mapper(User4.class);
         BoundStatement bs = (BoundStatement)mapper.getQuery(42);
         assertThat(bs.preparedStatement().getQueryString()).contains("SELECT \"key\" AS col1,\"v\" AS col2,writetime(\"v\") AS col3,\"ads\" AS col4");
     }
@@ -93,13 +92,6 @@ public class MapperSelectFunctionsTest extends CCMBridge.PerClassSingleNodeClust
         assertThat(saved.getWriteTime()).isNotEqualTo(0);
     }
 
-    @Test(groups = "short",
-        expectedExceptions = IllegalArgumentException.class,
-        expectedExceptionsMessageRegExp = "Field writeTime: attribute 'name' of annotation @Computed is mandatory for computed fields")
-    void should_fail_if_field_computed_and_no_name_provided() {
-        new MappingManager(session).mapper(User4.class);
-    }
-
     @Table(name = "user")
     public static class User {
         @PartitionKey
@@ -108,7 +100,7 @@ public class MapperSelectFunctionsTest extends CCMBridge.PerClassSingleNodeClust
 
         // whitespaces in the column name inserted on purpose
         // to test the newAlias generation mechanism
-        @Computed(name = "writetime(\"v\")")
+        @Computed(formula = "writetime(\"v\")")
         long writeTime;
 
         public User() {
@@ -228,66 +220,24 @@ public class MapperSelectFunctionsTest extends CCMBridge.PerClassSingleNodeClust
         }
     }
 
-    @Table(name = "user")
-    public static class User4 {
-        @PartitionKey
-        private int key;
-        private String v;
-
-        @Computed
-        byte writeTime;
-
-        public User4() {
-        }
-
-        public User4(int k, String val) {
-            this.key = k;
-            this.v = val;
-        }
-
-        public int getKey() {
-            return this.key;
-        }
-
-        public void setKey(int pk) {
-            this.key = pk;
-        }
-
-        public String getV() {
-            return this.v;
-        }
-
-        public void setV(String val) {
-            this.v = val;
-        }
-
-        public byte getWriteTime() {
-            return this.writeTime;
-        }
-
-        public void setWriteTime(byte pk) {
-            this.writeTime = pk;
-        }
-    }
-
     @Table(name = "userad")
-    public static class User5 {
+    public static class User4 {
         @PartitionKey
         private int key;
         private String v;
 
         // whitespaces in the column name inserted on purpose
         // to test the newAlias generation mechanism
-        @Computed(name = "writetime(\"v\")")
+        @Computed(formula = "writetime(\"v\")")
         long writeTime;
 
         @FrozenValue
         Set<Address> ads;
 
-        public User5() {
+        public User4() {
         }
 
-        public User5(int k, String val, Address address) {
+        public User4(int k, String val, Address address) {
             this.key = k;
             this.v = val;
             this.ads = new HashSet<Address>();

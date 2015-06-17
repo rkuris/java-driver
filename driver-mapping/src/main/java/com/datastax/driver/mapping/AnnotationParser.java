@@ -226,8 +226,8 @@ class AnnotationParser {
             return udtField.caseSensitive() ? udtField.name() : udtField.name().toLowerCase();
         }
 
-        if (computedField != null && !computedField.name().isEmpty()){
-            return computedField.name();
+        if (computedField != null){
+            return computedField.formula();
         }
 
         return field.getName().toLowerCase();
