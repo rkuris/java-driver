@@ -23,7 +23,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,7 +137,7 @@ public class Mapper<T> {
         BoundStatement bs = ps.bind();
         int i = 0;
         for (ColumnMapper<T> cm : mapper.allColumns()) {
-            if(cm.kind != ColumnMapper.Kind.COMPUTED) {
+            if (cm.kind != ColumnMapper.Kind.COMPUTED) {
                 Object value = cm.getValue(entity);
                 bs.setBytesUnsafe(i++, value == null ? null : cm.getDataType().serialize(value, protocolVersion));
             }
