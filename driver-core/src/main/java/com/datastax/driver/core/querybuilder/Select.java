@@ -37,24 +37,21 @@ public class Select extends BuiltStatement {
     private List<Ordering> orderings;
     private Object limit;
     private boolean allowFiltering;
-    private boolean isRaw;
 
-    Select(String keyspace, String table, List<Object> columnNames, boolean isDistinct, boolean isRaw) {
+    Select(String keyspace, String table, List<Object> columnNames, boolean isDistinct) {
         super(keyspace);
         this.table = table;
         this.isDistinct = isDistinct;
         this.columnNames = columnNames;
         this.where = new Where(this);
-        this.isRaw = isRaw;
     }
 
-    Select(TableMetadata table, List<Object> columnNames, boolean isDistinct, boolean isRaw) {
+    Select(TableMetadata table, List<Object> columnNames, boolean isDistinct) {
         super(table);
         this.table = escapeId(table.getName());
         this.isDistinct = isDistinct;
         this.columnNames = columnNames;
         this.where = new Where(this);
-        this.isRaw = isRaw;
     }
 
     @Override
@@ -67,7 +64,7 @@ public class Select extends BuiltStatement {
         if (columnNames == null) {
             builder.append('*');
         } else {
-            Utils.joinAndAppendNames(builder, ",", columnNames, isRaw);
+            Utils.joinAndAppendNames(builder, ",", columnNames);
         }
         builder.append(" FROM ");
         if (keyspace != null)
@@ -260,17 +257,11 @@ public class Select extends BuiltStatement {
 
         List<Object> columnNames;
         boolean isDistinct;
-        boolean isRaw = false;
 
         Builder() {}
 
         Builder(List<Object> columnNames) {
             this.columnNames = columnNames;
-        }
-
-        Builder(boolean isRaw, List<Object> columnNames) {
-            this.columnNames = columnNames;
-            this.isRaw = isRaw;
         }
 
         /**
@@ -291,7 +282,7 @@ public class Select extends BuiltStatement {
          * @return a newly built SELECT statement that selects from {@code keyspace.table}.
          */
         public Select from(String keyspace, String table) {
-            return new Select(keyspace, table, columnNames, isDistinct, isRaw);
+            return new Select(keyspace, table, columnNames, isDistinct);
         }
 
         /**
@@ -301,7 +292,7 @@ public class Select extends BuiltStatement {
          * @return a newly built SELECT statement that selects from {@code table}.
          */
         public Select from(TableMetadata table) {
-            return new Select(table, columnNames, isDistinct, isRaw);
+            return new Select(table, columnNames, isDistinct);
         }
     }
 
@@ -345,6 +336,14 @@ public class Select extends BuiltStatement {
          * @return this in-build SELECT statement
          */
         public abstract SelectionOrAlias column(String name);
+
+        /**
+         * Selects the provided raw expression.
+         *
+         * @param rawString the raw expression to add.
+         * @return this in-build SELECT statement
+         */
+        public abstract SelectionOrAlias raw(String rawString);
 
         /**
          * Selects the write time of provided column.
@@ -467,6 +466,11 @@ public class Select extends BuiltStatement {
          */
         public SelectionOrAlias column(String name) {
             return queueName(name);
+        }
+
+        @Override
+        public SelectionOrAlias raw(String rawString) {
+            return queueName(QueryBuilder.raw(rawString));
         }
 
         /**

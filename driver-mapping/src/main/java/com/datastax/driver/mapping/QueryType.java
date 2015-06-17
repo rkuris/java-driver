@@ -72,9 +72,12 @@ class QueryType {
                 }
             case GET:
                 {
-                    Select.Selection selection = select(true);
+                    Select.Selection selection = select();
                     for (ColumnMapper cm : mapper.allColumns()) {
-                        Select.SelectionOrAlias column = selection.column(cm.getColumnName());
+                        Select.SelectionOrAlias column = (cm.kind == ColumnMapper.Kind.COMPUTED)
+                            ? selection.raw(cm.getColumnName())
+                            : selection.column(cm.getColumnName());
+
                         if (cm.getAlias() == null) {
                             selection = column;
                         } else {
