@@ -262,10 +262,10 @@ public class PoolingOptions {
     }
 
     /**
-     * Returns the maximum number of requests per host.
+     * Returns the maximum number of requests per connection.
      *
      * @param distance the {@code HostDistance} for which to return this threshold.
-     * @return the maximum number of requests per host at distance {@code distance}.
+     * @return the maximum number of requests per connection at distance {@code distance}.
      *
      * @see #setMaxRequestsPerConnection(HostDistance, int)
      */
@@ -281,7 +281,7 @@ public class PoolingOptions {
     }
 
     /**
-     * Sets the maximum number of requests per host.
+     * Sets the maximum number of requests per connection.
      * <p>
      * The default value is:
      * <ul>
