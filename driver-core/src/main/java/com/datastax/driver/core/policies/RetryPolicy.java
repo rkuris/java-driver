@@ -42,11 +42,11 @@ public interface RetryPolicy {
      *   exception will return an empty result set.</li>
      * </ul>
      */
-    public static class RetryDecision {
+    class RetryDecision {
         /**
          * The type of retry decisions.
          */
-        public static enum Type { RETRY, RETHROW, IGNORE };
+        public enum Type { RETRY, RETHROW, IGNORE };
 
         private final Type type;
         private final ConsistencyLevel retryCL;
@@ -56,11 +56,6 @@ public interface RetryPolicy {
             this.type = type;
             this.retryCL = retryCL;
             this.retryCurrent = retryCurrent;
-        }
-        private RetryDecision(Type type, ConsistencyLevel retryCL) {
-            this.type = type;
-            this.retryCL = retryCL;
-            this.retryCurrent = true;
         }
 
         /**
@@ -97,7 +92,7 @@ public interface RetryPolicy {
          * @return a RETHROW retry decision.
          */
         public static RetryDecision rethrow() {
-            return new RetryDecision(Type.RETHROW, null);
+            return new RetryDecision(Type.RETHROW, null, true);
         }
 
         /**
@@ -107,7 +102,7 @@ public interface RetryPolicy {
          * @return a RETRY with consistency level {@code consistency} retry decision.
          */
         public static RetryDecision retry(ConsistencyLevel consistency) {
-            return new RetryDecision(Type.RETRY, consistency);
+            return new RetryDecision(Type.RETRY, consistency, true);
         }
 
         /**
@@ -116,7 +111,7 @@ public interface RetryPolicy {
          * @return an IGNORE retry decision.
          */
         public static RetryDecision ignore() {
-            return new RetryDecision(Type.IGNORE, null);
+            return new RetryDecision(Type.IGNORE, null, true);
         }
 
         /**
