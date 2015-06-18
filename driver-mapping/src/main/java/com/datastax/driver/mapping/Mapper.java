@@ -19,6 +19,7 @@ import java.util.*;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class Mapper<T> {
     final TableMetadata tableMetadata;
 
     // Cache prepared statements for each type of query we use.
-    private volatile Map<String, PreparedStatement> preparedQueries = Collections.<String, PreparedStatement>emptyMap();
+    private volatile Map<MapperQueryKey, PreparedStatement> preparedQueries = Collections.<MapperQueryKey, PreparedStatement>emptyMap();
 
     private static final Function<Object, Void> NOOP = Functions.<Void>constant(null);
 
@@ -82,17 +83,19 @@ public class Mapper<T> {
     }
 
     PreparedStatement getPreparedQuery(QueryType type, Option... options) {
-        String queryString;
-        queryString = type.makePreparedQueryString(tableMetadata, mapper, options);
-        PreparedStatement stmt = preparedQueries.get(queryString);
+
+        MapperQueryKey pqk = new MapperQueryKey(type, options);
+
+        PreparedStatement stmt = preparedQueries.get(pqk);
         if (stmt == null) {
             synchronized (preparedQueries) {
-                stmt = preparedQueries.get(queryString);
+                stmt = preparedQueries.get(pqk);
                 if (stmt == null) {
+                    String queryString = type.makePreparedQueryString(tableMetadata, mapper, options);
                     logger.debug("Preparing query {}", queryString);
                     stmt = session().prepare(queryString);
-                    Map<String, PreparedStatement> newQueries = new HashMap<String, PreparedStatement>(preparedQueries);
-                    newQueries.put(queryString, stmt);
+                    Map<MapperQueryKey, PreparedStatement> newQueries = new HashMap<MapperQueryKey, PreparedStatement>(preparedQueries);
+                    newQueries.put(pqk, stmt);
                     preparedQueries = newQueries;
                 }
             }
@@ -328,9 +331,6 @@ public class Mapper<T> {
             }
             bs.setBytesUnsafe(i, column.getDataType().serialize(value, protocolVersion));
         }
-
-        System.out.println("i = " + i);
-
 
         if (mapper.writeConsistency != null)
             bs.setConsistencyLevel(mapper.writeConsistency);
@@ -578,6 +578,7 @@ public class Mapper<T> {
             boolean isValidFor(QueryType qt){
                 return qt == QueryType.SAVE;
             }
+
         }
 
         static class Timestamp extends Option {
@@ -613,6 +614,7 @@ public class Mapper<T> {
             void bindInStatement(BoundStatement bs, int i){
                 bs.setLong(i, this.tsValue);
             }
+
         }
 
         /**
@@ -646,6 +648,42 @@ public class Mapper<T> {
         abstract void bindInStatement(BoundStatement bs, int i);
 
         abstract boolean isValidFor(QueryType qt);
+
+        public int hashCode() {
+            return Objects.hashCode(this.getClass());
+        }
+
+    }
+
+    private class MapperQueryKey {
+        private int key;
+
+        MapperQueryKey(QueryType qt, Option... options) {
+            this.key = qt.hashCode();
+            if (options != null) {
+                this.key += ImmutableList.copyOf(options).hashCode();
+            }
+        }
+
+        private int getKey() {
+            return this.key;
+        }
+
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if ((obj == null) || (obj.getClass() != this.getClass())) {
+                return false;
+            }
+            MapperQueryKey keyObj = (MapperQueryKey) obj;
+            return keyObj.getKey() == getKey();
+
+        }
+
+        public int hashCode() {
+            return this.key;
+        }
     }
 
 }
