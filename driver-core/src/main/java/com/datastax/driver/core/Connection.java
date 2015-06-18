@@ -832,7 +832,6 @@ class Connection {
         final Queue<FlushItem> queued = new ConcurrentLinkedQueue<FlushItem>();
         final AtomicBoolean running = new AtomicBoolean(false);
         final HashSet<Channel> channels = new HashSet<Channel>();
-        final List<FlushItem> flushed = Lists.newArrayListWithExpectedSize(50);
         int runsWithNoWork = 0;
 
         private Flusher(EventLoop eventLoop) {
@@ -855,7 +854,6 @@ class Connection {
             while (null != (flush = queued.poll())) {
                 channels.add(flush.channel);
                 flush.channel.write(flush.request).addListener(flush.listener);
-                flushed.add(flush);
                 doneWork = true;
             }
 
@@ -863,7 +861,6 @@ class Connection {
             for (Channel channel : channels)
                 channel.flush();
             channels.clear();
-            flushed.clear();
 
             if (doneWork) {
                 runsWithNoWork = 0;
