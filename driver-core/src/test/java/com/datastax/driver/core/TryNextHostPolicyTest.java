@@ -49,7 +49,7 @@ public class TryNextHostPolicyTest {
         cluster = Cluster.builder()
             .addContactPoint(CCMBridge.ipOfNode(1))
             .withRetryPolicy(new TryNextHostOnUnavailableRetryPolicy())
-            .withLoadBalancingPolicy(new SortingLoadBalancingPolicy())
+            .withLoadBalancingPolicy(new SpeculativeExecutionTest.SortingLoadBalancingPolicy())
             .build();
 
         session = cluster.connect();
@@ -74,63 +74,6 @@ public class TryNextHostPolicyTest {
         List<Host> hosts = rs.getExecutionInfo().getTriedHosts();
         assertThat(hosts.get(0).getAddress().getHostAddress()).isEqualTo(CCMBridge.IP_PREFIX + 1);
         assertThat(hosts.get(1).getAddress().getHostAddress()).isEqualTo(CCMBridge.IP_PREFIX + 2);
-    }
-
-    /**
-     * A load balancing policy that sorts hosts on the last byte of the address,
-     * so that the query plan is always [host1, host2, host3].
-     */
-    static class SortingLoadBalancingPolicy implements LoadBalancingPolicy {
-
-        private final SortedSet<Host> hosts = new ConcurrentSkipListSet<Host>(new Comparator<Host>() {
-            @Override
-            public int compare(Host host1, Host host2) {
-                byte[] address1 = host1.getAddress().getAddress();
-                byte[] address2 = host2.getAddress().getAddress();
-                return UnsignedBytes.compare(
-                    address1[address1.length - 1],
-                    address2[address2.length - 1]);
-            }
-        });
-
-        @Override
-        public void init(Cluster cluster, Collection<Host> hosts) {
-            this.hosts.addAll(hosts);
-        }
-
-        @Override
-        public HostDistance distance(Host host) {
-            return HostDistance.LOCAL;
-        }
-
-        @Override
-        public Iterator<Host> newQueryPlan(String loggedKeyspace, Statement statement) {
-            return hosts.iterator();
-        }
-
-        @Override
-        public void onAdd(Host host) {
-            onUp(host);
-        }
-
-        @Override
-        public void onUp(Host host) {
-            hosts.add(host);
-        }
-
-        @Override
-        public void onDown(Host host) {
-            hosts.remove(host);
-        }
-
-        @Override
-        public void onRemove(Host host) {
-            onDown(host);
-        }
-
-        @Override
-        public void onSuspected(Host host) {
-        }
     }
 
     public class TryNextHostOnUnavailableRetryPolicy implements RetryPolicy{

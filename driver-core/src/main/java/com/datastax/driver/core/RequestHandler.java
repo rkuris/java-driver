@@ -580,7 +580,7 @@ class RequestHandler {
                                         logger.debug("Doing retry {} for query {} at consistency {}", retriesByPolicy, statement, retry.getRetryConsistencyLevel());
                                     if (metricsEnabled())
                                         metrics().getErrorMetrics().getRetries().inc();
-                                    retry(retry.getTryNextHost(), retry.getRetryConsistencyLevel());
+                                    retry(retry.isTryNextHost(), retry.getRetryConsistencyLevel());
                                     break;
                                 case RETHROW:
                                     setFinalResult(connection, response);

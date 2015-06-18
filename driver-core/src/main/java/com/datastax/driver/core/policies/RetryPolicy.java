@@ -87,8 +87,8 @@ public interface RetryPolicy {
          *
          * @return the retry on next host boolean. Default is false.
          */
-        public boolean getTryNextHost() {
-            return retryCurrent;
+        public boolean isTryNextHost() {
+            return !retryCurrent;
         }
 
         /**
