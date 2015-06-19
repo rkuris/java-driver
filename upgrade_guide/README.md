@@ -3,7 +3,21 @@
 The purpose of this guide is to detail changes made by successive
 versions of the Java driver.
 
-### 2.1.2
+### 2.1.7
+
+1. The following properties in `PoolingOptions` were renamed:
+    * `MaxSimultaneousRequestsPerConnectionThreshold` to `NewConnectionThreshold`
+    * `MaxSimultaneousRequestsPerHostThreshold` to `MaxRequestsPerConnection`
+
+    The old getters/setters were deprecated, but they delegate to the new
+    ones.
+
+    Also, note that the connection pool for protocol v3 can now be configured to
+    use multiple connections. See [this page](../features/pooling) for more
+    information.
+
+
+### 2.1.2O
 
 2.1.2 brings important internal changes with native protocol v3 support, but
 the impact on the public API has been kept as low as possible.
@@ -314,8 +328,7 @@ exhaustive list of new features in 2.0.
     of data. In general paging should be transparent for the application (as in
     the example above), but the implementation provides a number of knobs to
     fine tune the behavior of that paging:
-
-   * the size of each "page" can be set per-query (`Statement#setFetchSize()`)
-   * the `ResultSet` object provides 2 methods to check the state of paging
-     (`ResultSet#getAvailableWithoutFetching` and `ResultSet#isFullyFetched`)
-     as well as a mean to force the pre-fetching of the next page (`ResultSet#fetchMoreResults`).
+    * the size of each "page" can be set per-query (`Statement#setFetchSize()`)
+    * the `ResultSet` object provides 2 methods to check the state of paging
+      (`ResultSet#getAvailableWithoutFetching` and `ResultSet#isFullyFetched`)
+      as well as a mean to force the pre-fetching of the next page (`ResultSet#fetchMoreResults`).
