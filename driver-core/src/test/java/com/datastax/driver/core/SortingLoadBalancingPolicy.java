@@ -29,7 +29,7 @@ import com.datastax.driver.core.policies.LoadBalancingPolicy;
  * A load balancing policy that sorts hosts on the last byte of the address,
  * so that the query plan is always [host1, host2, host3].
  */
-class SortingLoadBalancingPolicy implements LoadBalancingPolicy {
+public class SortingLoadBalancingPolicy implements LoadBalancingPolicy {
 
     private final SortedSet<Host> hosts = new ConcurrentSkipListSet<Host>(new Comparator<Host>() {
         @Override

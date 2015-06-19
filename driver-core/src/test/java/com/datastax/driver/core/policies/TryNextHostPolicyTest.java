@@ -13,19 +13,18 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.datastax.driver.core;
+package com.datastax.driver.core.policies;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.List;
 
-import com.google.common.primitives.UnsignedBytes;
 import org.scassandra.http.client.PrimingRequest;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.datastax.driver.core.policies.LoadBalancingPolicy;
-import com.datastax.driver.core.policies.RetryPolicy;
+import com.datastax.driver.core.*;
+import com.datastax.driver.core.exceptions.UnavailableException;
 
 import static com.datastax.driver.core.Assertions.assertThat;
 
@@ -43,13 +42,11 @@ public class TryNextHostPolicyTest {
         scassandras = new SCassandraCluster(CCMBridge.IP_PREFIX, 3);
     }
 
-    @BeforeMethod(groups = "short")
-    public void beforeMethod() {
-
+    public void beforeMethod(RetryPolicy retryPolicy) {
         cluster = Cluster.builder()
             .addContactPoint(CCMBridge.ipOfNode(1))
-            .withRetryPolicy(new TryNextHostOnUnavailableRetryPolicy())
-            .withLoadBalancingPolicy(new SpeculativeExecutionTest.SortingLoadBalancingPolicy())
+            .withRetryPolicy(retryPolicy)
+            .withLoadBalancingPolicy(new SortingLoadBalancingPolicy())
             .build();
 
         session = cluster.connect();
@@ -63,20 +60,63 @@ public class TryNextHostPolicyTest {
 
     @Test(groups = "short")
     public void should_try_on_next_host_in_query_plan_retry_policy_test() {
-        scassandras.prime(1, PrimingRequest.queryBuilder()
+        beforeMethod(new LoggingRetryPolicy(new TryNextHostOnUnavailableRetryPolicy()));
+        scassandras
+            .prime(1, PrimingRequest.queryBuilder()
+                    .withQuery("mock query")
+                    .withResult(PrimingRequest.Result.unavailable)
+                    .build()
+            );
+        SimpleStatement statement = new SimpleStatement("mock query");
+        statement.setConsistencyLevel(ConsistencyLevel.ONE);
+        ResultSet rs = session.execute(statement);
+        List<Host> hosts = rs.getExecutionInfo().getTriedHosts();
+        assertThat(hosts.size()).isEqualTo(2);
+        assertThat(hosts.get(0).getAddress().getHostAddress()).isEqualTo(CCMBridge.IP_PREFIX + 1);
+        assertThat(hosts.get(1).getAddress().getHostAddress()).isEqualTo(CCMBridge.IP_PREFIX + 2);
+    }
+
+    @Test(groups = "short")
+    public void should_try_next_host_only_once_by_default() {
+        beforeMethod(new LoggingRetryPolicy(DefaultRetryPolicy.INSTANCE));
+        boolean unavailableException = false;
+        scassandras
+            .prime(1, PrimingRequest.queryBuilder()
+                    .withQuery("mock query")
+                    .withResult(PrimingRequest.Result.unavailable)
+                    .build()
+            ).prime(2, PrimingRequest.queryBuilder()
                 .withQuery("mock query")
                 .withResult(PrimingRequest.Result.unavailable)
                 .build()
         );
         SimpleStatement statement = new SimpleStatement("mock query");
-        statement.setConsistencyLevel(ConsistencyLevel.ONE);
-        ResultSet rs = session.execute(statement);;
-        List<Host> hosts = rs.getExecutionInfo().getTriedHosts();
-        assertThat(hosts.get(0).getAddress().getHostAddress()).isEqualTo(CCMBridge.IP_PREFIX + 1);
-        assertThat(hosts.get(1).getAddress().getHostAddress()).isEqualTo(CCMBridge.IP_PREFIX + 2);
+        try {
+            session.execute(statement);
+        } catch (UnavailableException e) {
+            // We must get an UnavailableException because we retried
+            // once on another node, and the second time, the default
+            // retry policy throws an exception.
+            unavailableException = true;
+            assertThat(errors.getRetries().getCount()).isEqualTo(1);
+        }
+        assertThat(unavailableException).isTrue();
     }
 
-    public class TryNextHostOnUnavailableRetryPolicy implements RetryPolicy{
+    @AfterMethod(groups = "short")
+    public void afterMethod() {
+        scassandras.clearAllPrimes();
+        if (cluster != null)
+            cluster.close();
+    }
+
+    @AfterClass(groups = "short")
+    public void afterClass() {
+        if (scassandras != null)
+            scassandras.stop();
+    }
+
+    public class TryNextHostOnUnavailableRetryPolicy implements RetryPolicy {
 
         @Override
         public RetryDecision onReadTimeout(Statement statement, ConsistencyLevel cl, int requiredResponses, int receivedResponses, boolean dataRetrieved, int nbRetry) {
@@ -90,7 +130,7 @@ public class TryNextHostPolicyTest {
 
         @Override
         public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica, int aliveReplica, int nbRetry) {
-            return RetryDecision.tryNextHost();
+            return RetryDecision.tryNextHost(cl);
         }
     }
 }

@@ -103,7 +103,6 @@ you have trouble compiling your application after an upgrade.
    This means for instance that `eq("x", raw(foo))` will output `x = foo`,
    not `x = 'foo'` (you don't need the raw method to output the latter string).
 
-
 9. The `QueryBuilder` will now sometimes use the new ability to send value as
    bytes instead of serializing everything to string. In general the QueryBuilder
    will do the right thing, but if you were calling the `getQueryString()` method
@@ -112,6 +111,15 @@ you have trouble compiling your application after an upgrade.
    provided (and in that case, `getValues()` will contain the values corresponding
    to those markers). If need be, it is possible to force the old behavior by
    using the new `setForceNoValues()` method.
+   
+10. The `DefaultRetryPolicy`'s behaviour have changed in the case of an Unavailable
+    exception received from a request. The new behaviour will cause the driver to
+    process a Retry on a different node at most once, otherwise an exception will 
+    be thrown. This change makes sense in the case where the node tried initially
+    for the request happens to be isolated from the rest of the other nodes 
+    (let's say, because of bad partition of the network) but can still answer to 
+    the client normally, in this case, trying on other node have higher chances
+    of success. The previous behaviour was to always throw an exception.
 
 #### Other API Changes
 
@@ -201,8 +209,8 @@ exhaustive list of new features in 2.0.
     ```
 
 3. SELECT queries are now "paged" under the hood. In other words, if a query
-   yields a very large result, only the beginning of the `ResultSet` will be fetch
-   initially, the rest being fetch "on-demand". In practice, this means that:
+   yields a very large result, only the beginning of the `ResultSet` will be fetched
+   initially, the rest being fetched "on-demand". In practice, this means that:
 
     ```java
     for (Row r : session.execute("SELECT * FROM mytable"))

@@ -82,8 +82,8 @@ public interface RetryPolicy {
          *
          * @return the retry on next host boolean. Default is false.
          */
-        public boolean isTryNextHost() {
-            return !retryCurrent;
+        public boolean isRetryCurrent() {
+            return retryCurrent;
         }
 
         /**
@@ -115,18 +115,19 @@ public interface RetryPolicy {
         }
 
         /**
-         * Creates a RETRY retry decision and indicates to retry on another host.
+         * Creates a RETRY retry decision and indicates to retry on another host
+         * using the provided consistency level.
          *
          * @return a RETRY retry decision.
          */
-        public static RetryDecision tryNextHost(){
-            return new RetryDecision(Type.RETRY, null, false);
+        public static RetryDecision tryNextHost(ConsistencyLevel retryCL) {
+            return new RetryDecision(Type.RETRY, retryCL, false);
         }
 
         @Override
         public String toString() {
             switch (type) {
-                case RETRY:         return "Retry at " + retryCL;
+                case RETRY:         return "Retry at " + retryCL + " on " + (retryCurrent ? "same " : "next ") + "host.";
                 case RETHROW:       return "Rethrow";
                 case IGNORE:        return "Ignore";
             }

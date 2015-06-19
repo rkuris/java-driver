@@ -109,9 +109,16 @@ public class DefaultRetryPolicy implements RetryPolicy {
      * Defines whether to retry and at which consistency level on an
      * unavailable exception.
      * <p>
-     * This method never retries as a retry on an unavailable exception
-     * using the same consistency level has almost no change of success.
+     * This method triggers a retry iff no retry have been executed before
+     * (nbRetry == 0), with {@link RetryDecision#tryNextHost}, otherwise it
+     * throws an exception. The retry will be processed on the next host
+     * in the query plan according to the current Load Balancing Policy.
+     * Where retrying on the same host in the event of an Unavailable exception
+     * have almost no chance of success, if the first replica tried happens to
+     * be "network" isolated from all the other nodes but can still answer to
+     * the client, it makes sense to retry the query on another node.
      *
+     * @jira_ticket JAVA-709
      * @param statement the original query for which the consistency level cannot
      * be achieved.
      * @param cl the original consistency level for the operation.
@@ -124,7 +131,9 @@ public class DefaultRetryPolicy implements RetryPolicy {
      */
     @Override
     public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl, int requiredReplica, int aliveReplica, int nbRetry) {
-        // Do we change this to RetryDecision.tryNextHost() ?
-        return RetryDecision.rethrow();
+        if (nbRetry != 0)
+            return RetryDecision.rethrow();
+
+        return RetryDecision.tryNextHost(cl);
     }
 }
