@@ -650,7 +650,7 @@ public class Mapper<T> {
         abstract boolean isValidFor(QueryType qt);
 
         public int hashCode() {
-            return Objects.hashCode(this.getClass());
+            return this.getClass().hashCode();
         }
 
     }
