@@ -24,7 +24,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.datastax.driver.core.*;
-import com.datastax.driver.core.exceptions.UnavailableException;
 
 import static com.datastax.driver.core.Assertions.assertThat;
 
@@ -63,10 +62,13 @@ public class TryNextHostPolicyTest {
         beforeMethod(new LoggingRetryPolicy(new TryNextHostOnUnavailableRetryPolicy()));
         scassandras
             .prime(1, PrimingRequest.queryBuilder()
-                    .withQuery("mock query")
-                    .withResult(PrimingRequest.Result.unavailable)
-                    .build()
-            );
+                .withQuery("mock query")
+                .withResult(PrimingRequest.Result.unavailable)
+                .build())
+            .prime(2, PrimingRequest.queryBuilder()
+                .withQuery("mock query")
+                .withResult(PrimingRequest.Result.success)
+                .build());
         SimpleStatement statement = new SimpleStatement("mock query");
         statement.setConsistencyLevel(ConsistencyLevel.ONE);
         ResultSet rs = session.execute(statement);
@@ -74,33 +76,6 @@ public class TryNextHostPolicyTest {
         assertThat(hosts.size()).isEqualTo(2);
         assertThat(hosts.get(0).getAddress().getHostAddress()).isEqualTo(CCMBridge.IP_PREFIX + 1);
         assertThat(hosts.get(1).getAddress().getHostAddress()).isEqualTo(CCMBridge.IP_PREFIX + 2);
-    }
-
-    @Test(groups = "short")
-    public void should_try_next_host_only_once_by_default() {
-        beforeMethod(new LoggingRetryPolicy(DefaultRetryPolicy.INSTANCE));
-        boolean unavailableException = false;
-        scassandras
-            .prime(1, PrimingRequest.queryBuilder()
-                    .withQuery("mock query")
-                    .withResult(PrimingRequest.Result.unavailable)
-                    .build()
-            ).prime(2, PrimingRequest.queryBuilder()
-                .withQuery("mock query")
-                .withResult(PrimingRequest.Result.unavailable)
-                .build()
-        );
-        SimpleStatement statement = new SimpleStatement("mock query");
-        try {
-            session.execute(statement);
-        } catch (UnavailableException e) {
-            // We must get an UnavailableException because we retried
-            // once on another node, and the second time, the default
-            // retry policy throws an exception.
-            unavailableException = true;
-            assertThat(errors.getRetries().getCount()).isEqualTo(1);
-        }
-        assertThat(unavailableException).isTrue();
     }
 
     @AfterMethod(groups = "short")
