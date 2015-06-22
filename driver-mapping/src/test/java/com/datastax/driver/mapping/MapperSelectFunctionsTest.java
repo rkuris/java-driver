@@ -31,8 +31,8 @@ import com.datastax.driver.mapping.annotations.*;
 import static com.datastax.driver.core.Assertions.assertThat;
 
 /**
- * Tests to ensure validity of {@code computed} option in
- * {@link com.datastax.driver.mapping.annotations.Column}
+ * Tests to ensure validity of {@link com.datastax.driver.mapping.annotations.Computed}
+ * annotation to map computed fields.
  */
 @SuppressWarnings("unused")
 public class MapperSelectFunctionsTest extends CCMBridge.PerClassSingleNodeCluster {
@@ -100,8 +100,6 @@ public class MapperSelectFunctionsTest extends CCMBridge.PerClassSingleNodeClust
         private int key;
         private String v;
 
-        // whitespaces in the column name inserted on purpose
-        // to test the newAlias generation mechanism
         @Computed(formula = "writetime(\"v\")")
         long writeTime;
 
